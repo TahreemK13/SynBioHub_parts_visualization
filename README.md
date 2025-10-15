@@ -81,6 +81,8 @@ python scripts/altairsb.py
 Output will be created in:
 
 outputs/chart.html
+and 
+https://tahreemk13.github.io/SynBioHub_parts_visualization/
 
 📂 Project Structure
 synbiohub-parts-trend/
