@@ -1,5 +1,10 @@
 # 📈 Growth of SynBioHub Parts by Type (2002–2016)
 
+<img width="1118" height="619" alt="Screenshot 2025-10-14 at 10 45 28 PM" src="https://github.com/user-attachments/assets/8ff25cb3-b0e7-40de-bad3-211f98468aad" />
+
+
+
+
 ## Live Visualization
 View the interactive chart here:  
 👉 [SynBioHub Parts Visualization](https://tahreemk13.github.io/SynBioHub_parts_visualization/)
