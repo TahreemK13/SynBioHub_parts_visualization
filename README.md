@@ -7,7 +7,9 @@
 
 ## Live Visualization
 
-An interactive **Altair** visualization showing how the counts of synthetic biology parts in [SynBioHub](https://synbiohub.org/) has fluctuated over time. The data points are distinguished by the biological type attached to their repository submission (e.g., *Plasmid*, *Composite*, *Promoter*, etc.). View the interactive chart here:  
+An interactive **Altair** visualization showing how the counts of synthetic biology parts in [SynBioHub](https://synbiohub.org/) has fluctuated over time. The data points are distinguished by the biological type attached to their repository submission (e.g., *Plasmid*, *Composite*, *Promoter*, etc.). 
+
+View the interactive chart here:  
 👉 [SynBioHub Parts Visualization](https://tahreemk13.github.io/SynBioHub_parts_visualization/)
 ---
 
@@ -24,7 +26,8 @@ Each line represents a distinct biological type, with interactive highlighting v
 
 ## Output
 
-Open the interactive chart directly in your browser:
+Open the interactive chart directly in your browser:  
+https://tahreemk13.github.io/SynBioHub_parts_visualization/
 
 ---
 
