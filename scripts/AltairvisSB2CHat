@@ -1,0 +1,96 @@
+import pandas as pd
+import altair as alt
+
+# --- TUNABLES ---
+TOP_N = 12          # show only the 12 most-common types overall
+ROLLING_YEARS = 3   # set to None to disable smoothing
+YEAR_MIN, YEAR_MAX = 2002, 2016
+
+# Load
+df = pd.read_csv("cleaned_synbiohub_parts.csv")
+
+# Parse year from ISO8601-ish 'created'
+df["year"] = pd.to_datetime(df["created"], format="ISO8601", errors="coerce").dt.year
+df["type"] = df["type"].fillna("Unidentified")
+
+# Drop SO: ontology types
+df = df[~df["type"].astype(str).str.startswith("SO:")]
+
+# Count by year × type
+counts = (
+    df.groupby(["type", "year"])
+      .size()
+      .reset_index(name="count")
+)
+
+# Ensure full year grid so lines don’t break
+all_years  = list(range(YEAR_MIN, YEAR_MAX + 1))
+all_types  = counts["type"].unique()
+full_index = pd.MultiIndex.from_product([all_types, all_years], names=["type", "year"])
+counts = (counts
+          .set_index(["type", "year"])
+          .reindex(full_index, fill_value=0)
+          .reset_index())
+
+# Focus window
+counts = counts.query("@YEAR_MIN <= year <= @YEAR_MAX")
+
+# Keep only TOP_N most common types overall (cleaner legend)
+top_types = (
+    counts.groupby("type")["count"].sum()
+          .sort_values(ascending=False)
+          .head(TOP_N).index
+)
+counts = counts[counts["type"].isin(top_types)].copy()
+
+# Optional rolling average (per type)
+counts = counts.sort_values(["type", "year"])
+if ROLLING_YEARS and ROLLING_YEARS > 1:
+    counts["count_smoothed"] = (
+        counts.groupby("type")["count"]
+              .transform(lambda s: s.rolling(ROLLING_YEARS, min_periods=1).mean())
+    )
+    value_field = "count_smoothed"
+    y_title = f"Number of Parts (rolling {ROLLING_YEARS}y)"
+else:
+    value_field = "count"
+    y_title = "Number of Parts"
+
+# Interactive focus-by-legend selection
+sel = alt.selection_point(fields=["type"], bind="legend")
+
+title = alt.TitleParams(
+    text="Growth of SynBioHub Parts by Type (2002–2016)",
+    subtitle=["Counts per year; use legend to highlight a type",
+              "Dates reflect initial creation; newer activity may not appear"],
+    anchor="start", fontSize=18, subtitleFontSize=12
+)
+
+base = alt.Chart(counts, title=title).properties(width=900, height=500)
+
+lines = base.mark_line().encode(
+    x=alt.X("year:O", title="Year", sort="ascending", axis=alt.Axis(labelAngle=0)),
+    y=alt.Y(f"{value_field}:Q", title=y_title),
+    color=alt.Color("type:N",
+                    title="Part Type",
+                    legend=alt.Legend(columns=2, labelLimit=180)),
+    opacity=alt.condition(sel, alt.value(1), alt.value(0.15)),
+    tooltip=[alt.Tooltip("type:N"), alt.Tooltip("year:O"), alt.Tooltip(f"{value_field}:Q", title="Count")]
+).add_params(sel)
+
+points = base.mark_point(size=28).encode(
+    x="year:O", y=f"{value_field}:Q", color="type:N",
+    opacity=alt.condition(sel, alt.value(1), alt.value(0.15)),
+    tooltip=[alt.Tooltip("type:N"), alt.Tooltip("year:O"), alt.Tooltip(f"{value_field}:Q", title="Count")]
+)
+
+chart = (lines + points).configure_axis(
+    grid=True, tickSize=3, labelFontSize=11, titleFontSize=12
+).configure_legend(
+    orient="right", titleFontSize=12, labelFontSize=11, symbolSize=100
+).configure_view(
+    strokeWidth=0
+).interactive()
+
+chart.save("chart.html")
+print("Saved chart.html")
